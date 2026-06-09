@@ -25,6 +25,8 @@ API_URL = (
     "?idEleccion=10&tipoFiltro=eleccion"
 )
 
+BASE_URL = "https://resultadosegundavuelta.onpe.gob.pe/"
+
 # CSV file path (relative to repo root)
 CSV_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results.csv")
 
@@ -36,6 +38,22 @@ EXPECTED_PARTICIPANTS = 2
 
 # HTTP request timeout in seconds
 REQUEST_TIMEOUT = 30
+
+REQUEST_HEADERS = {
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
+    "Referer": BASE_URL,
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0.0.0 Safari/537.36"
+    ),
+}
 
 # CSV column headers
 HEADERS = [
@@ -59,7 +77,9 @@ HEADERS = [
 def fetch_data() -> dict:
     """Call the ONPE API and return the parsed JSON response."""
     try:
-        response = requests.get(API_URL, timeout=REQUEST_TIMEOUT)
+        session = requests.Session()
+        session.get(BASE_URL, timeout=REQUEST_TIMEOUT, headers=REQUEST_HEADERS)
+        response = session.get(API_URL, timeout=REQUEST_TIMEOUT, headers=REQUEST_HEADERS)
         response.raise_for_status()
     except requests.exceptions.RequestException as exc:
         print(f"[ERROR] HTTP request failed: {exc}", file=sys.stderr)
@@ -69,6 +89,11 @@ def fetch_data() -> dict:
         data = response.json()
     except ValueError:
         print("[ERROR] Response is not valid JSON.", file=sys.stderr)
+        print(
+            f"[ERROR] Content-Type: {response.headers.get('content-type', 'unknown')}",
+            file=sys.stderr,
+        )
+        print(f"[ERROR] Response preview: {response.text[:500]}", file=sys.stderr)
         sys.exit(1)
 
     return data
