@@ -1,9 +1,9 @@
 name: Fetch Election Results
 
 on:
-  # Run every 5 minutes (testing) — change to "*/30 * * * *" for production
+  # Run every 30 minutes.
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
 
   # Allow manual triggers from the Actions tab
   workflow_dispatch:
